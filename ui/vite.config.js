@@ -1,4 +1,4 @@
-import { defineConfig, splitVendorChunkPlugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import eslint from 'vite-plugin-eslint2';
 
@@ -15,7 +15,6 @@ export default () => {
           exclude: []
         }
       ),
-      splitVendorChunkPlugin(),
       {
         name: 'build-ui-html',
         apply: 'build',
