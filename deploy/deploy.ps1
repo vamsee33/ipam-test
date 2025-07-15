@@ -1232,16 +1232,16 @@ process {
           Extension = 'deb'
           Port      = 8080
           Images    = @{
-            Build = 'node:18-slim'
-            Serve = 'python:3.9-slim'
+            Build = 'node:22-slim'
+            Serve = 'python:3.11-slim'
           }
         }
         RHEL = @{
           Extension = 'rhel'
           Port      = 8080
           Images    = @{
-            Build = 'registry.access.redhat.com/ubi8/nodejs-18'
-            Serve = 'registry.access.redhat.com/ubi8/python-39'
+            Build = 'registry.access.redhat.com/ubi8/nodejs-22'
+            Serve = 'registry.access.redhat.com/ubi8/python-311'
           }
         }
       }
