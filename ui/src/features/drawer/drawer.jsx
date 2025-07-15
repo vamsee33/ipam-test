@@ -12,7 +12,7 @@ import { SvgIcon } from "@mui/material";
 import { orderBy } from 'lodash';
 import { plural, singular } from 'pluralize';
 
-import { Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, Navigate, useNavigate } from "react-router";
 
 import { callMsGraph, callMsGraphPhoto } from "../../msal/graph";
 

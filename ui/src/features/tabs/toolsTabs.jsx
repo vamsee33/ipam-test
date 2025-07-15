@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
