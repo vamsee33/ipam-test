@@ -83,19 +83,24 @@ async def next_available_subnet(
     for subnet in target['subnets']:
         vnet_all_cidrs.append(subnet['prefix'])
 
-    vnet_set = IPSet(target['prefixes'])
+    # vnet_set = IPSet(target['prefixes'])
+    vnet_set = [IPNetwork(x) for x in target['prefixes']]
+    # reserved_set = IPSet(vnet_all_cidrs)
     reserved_set = IPSet(vnet_all_cidrs)
-    available_set = vnet_set ^ reserved_set
+    # available_set = vnet_set ^ reserved_set
+    available_set = [item for sublist in [x.iter_cidrs() for x in list(filter(None, [(IPSet(x) - reserved_set) for x in vnet_set]))] for item in sublist]
 
     available_slicer = slice(None, None, -1) if req.reverse_search else slice(None)
     next_selector = -1 if req.reverse_search else 0
 
     if req.smallest_cidr:
-        cidr_list = list(filter(lambda x: x.prefixlen <= req.size, available_set.iter_cidrs()[available_slicer]))
+        # cidr_list = list(filter(lambda x: x.prefixlen <= req.size, available_set.iter_cidrs()[available_slicer]))
+        cidr_list = list(filter(lambda x: x.prefixlen <= req.size, available_set[available_slicer]))
         min_mask = max(map(lambda x: x.prefixlen, cidr_list))
         available_block = next((net for net in list(filter(lambda network: network.prefixlen == min_mask, cidr_list))), None)
     else:
-        available_block = next((net for net in list(available_set.iter_cidrs())[available_slicer] if net.prefixlen <= req.size), None)
+        # available_block = next((net for net in list(available_set.iter_cidrs())[available_slicer] if net.prefixlen <= req.size), None)
+        available_block = next((net for net in available_set[available_slicer] if net.prefixlen <= req.size), None)
 
     if not available_block:
         raise HTTPException(status_code=500, detail="Subnet of requested size unavailable in target virtual network.")
