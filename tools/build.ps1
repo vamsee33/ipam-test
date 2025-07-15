@@ -39,8 +39,8 @@ param(
 $ROOT_DIR = (Get-Item $($MyInvocation.MyCommand.Path)).Directory.Parent.FullName
 
 # Define minimum NodeJS and NPM versions required to build the Azure IPAM UI solution
-$MIN_NODE_VERSION = [version]'18.0.0'
-$MIN_NPM_VERSION = [version]'8.6.0'
+$MIN_NODE_VERSION = [version]'22.12.0'
+$MIN_NPM_VERSION = [version]'10.9.2'
 
 # Load Python version required to build the Azure IPAM UI solution
 $engineAppDir = Join-Path -Path $ROOT_DIR -ChildPath "engine" -AdditionalChildPath "app"
