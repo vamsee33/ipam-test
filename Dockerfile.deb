@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE=node:18-slim
-ARG SERVE_IMAGE=python:3.9-slim
+ARG BUILD_IMAGE=node:22-slim
+ARG SERVE_IMAGE=python:3.11-slim
 
 ARG PORT=8080
 

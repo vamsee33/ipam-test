@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE=registry.access.redhat.com/ubi8/nodejs-18
-ARG SERVE_IMAGE=registry.access.redhat.com/ubi8/python-39
+ARG BUILD_IMAGE=registry.access.redhat.com/ubi8/nodejs-22
+ARG SERVE_IMAGE=registry.access.redhat.com/ubi8/python-311
 
 ARG PORT=8080
 
