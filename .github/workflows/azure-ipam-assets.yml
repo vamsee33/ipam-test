@@ -30,6 +30,7 @@ jobs:
           python-version: '3.9'
 
       - name: Checkout Azure IPAM Code
+        id: checkoutRepo
         uses: actions/checkout@v4
 
       - name: Install NPM Packages
