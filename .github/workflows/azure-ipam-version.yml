@@ -23,17 +23,17 @@ jobs:
     steps:
       - run: echo "Job triggered by a ${{ github.event_name }} event to main."
 
-      - name: "Setup NodeJS v18"
+      - name: "Setup NodeJS v22"
         id: setupNode
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
-      - name: "Setup Python v3.9"
+      - name: "Setup Python v3.11"
         id: setupPython
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: "Extract Pull Request Details"
         id: getPullRequestData
