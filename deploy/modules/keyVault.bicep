@@ -30,7 +30,7 @@ var keyVaultUser = '4633458b-17de-408a-b874-0445c86b69e6'
 var keyVaultUserId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultUser)
 var keyVaultUserRoleAssignmentId = guid(keyVaultUser, identityPrincipalId, keyVault.id)
 
-resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
   properties: {
@@ -48,7 +48,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
   }
 }
 
-resource identityId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+resource identityId 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: 'IDENTITY-ID'
   properties: {
@@ -56,7 +56,7 @@ resource identityId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   }
 }
 
-resource uiId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+resource uiId 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: 'UI-ID'
   properties: {
@@ -64,7 +64,7 @@ resource uiId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   }
 }
 
-resource engineId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+resource engineId 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: 'ENGINE-ID'
   properties: {
@@ -72,7 +72,7 @@ resource engineId 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   }
 }
 
-resource engineSecret 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+resource engineSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: 'ENGINE-SECRET'
   properties: {
@@ -80,7 +80,7 @@ resource engineSecret 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   }
 }
 
-resource appTenant 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
+resource appTenant 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: 'TENANT-ID'
   properties: {
@@ -116,7 +116,7 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
   }
 }
 
-resource keyVaultUserAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource keyVaultUserAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: keyVaultUserRoleAssignmentId
   scope: keyVault
   properties: {
