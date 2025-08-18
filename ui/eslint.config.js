@@ -8,7 +8,103 @@ import jest from "eslint-plugin-jest";
 export default [
   js.configs.recommended,
   {
+    files: ["*.js", "*.mjs", "*.cjs"],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+      }
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "no-prototype-builtins": "off",
+      "no-constant-binary-expression": "off"
+    },
+  },
+  {
+    files: ["src/**/*.js"],
+    plugins: {
+      jest
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.jest
+      }
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "no-prototype-builtins": "off",
+      "no-constant-binary-expression": "off"
+    },
+  },
+  {
     files: ["src/**/*.jsx"],
+    plugins: {
+      react,
+      "react-hooks": hooks,
+      jest
+    },
+    settings: {
+      react: {
+        version: "detect",
+      }
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.jest
+      }
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "no-prototype-builtins": "off",
+      "react/prop-types": "off",
+      "react/display-name": "off",
+      "react/no-unescaped-entities": "off",
+      "no-constant-binary-expression": "off"
+    },
+  },
+  {
+    files: ["src/**/*.ts"],
+    plugins: {
+      jest
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.jest
+      }
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "no-prototype-builtins": "off",
+      "no-constant-binary-expression": "off"
+    },
+  },
+  {
+    files: ["src/**/*.tsx"],
     plugins: {
       react,
       "react-hooks": hooks,
