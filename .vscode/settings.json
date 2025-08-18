@@ -11,6 +11,8 @@
     "markdownlint.config": {
       "default": true,
       "MD024": { "siblings_only": true },
+      "MD028": false,
       "MD033": false
-  }
+  },
+  "files.trimTrailingWhitespace": true
 }
