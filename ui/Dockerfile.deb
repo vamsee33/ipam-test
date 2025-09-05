@@ -1,7 +1,11 @@
 ARG BASE_IMAGE=node:22-slim
 FROM $BASE_IMAGE
 
+# Set Default Port
 ARG PORT=80
+
+# Set Debian Frontend to Non-Interactive
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Set Environment Variable
 ENV PORT=${PORT}

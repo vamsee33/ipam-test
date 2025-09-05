@@ -1,9 +1,19 @@
 ARG BUILD_IMAGE=node:22-slim
 ARG SERVE_IMAGE=python:3.11-slim
 
+# Set Production Build Flag
+ARG PROD_BUILD=true
+
+# Set Default Port
 ARG PORT=8080
 
 FROM $BUILD_IMAGE AS builder
+
+# Production Build Flag
+ARG PROD_BUILD
+
+# Set Debian Frontend Flag
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Disable NPM Update Notifications
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
@@ -15,7 +25,11 @@ WORKDIR /tmp
 COPY ./ui/. ./
 
 # Install UI Dependencies
-RUN npm ci
+RUN if [ "${PROD_BUILD}" = true ]; then \
+  npm ci; \
+else \
+  npm install; \
+fi
 RUN chmod 777 -R node_modules
 
 # Build IPAM UI
@@ -23,7 +37,14 @@ RUN npm run build
 
 FROM $SERVE_IMAGE
 
+# Set Production Build Flag
+ARG PROD_BUILD
+
+# Port to Listen On
 ARG PORT
+
+# Set Debian Frontend to Non-Interactive
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Set Environment Variable
 ENV PORT=${PORT}
@@ -37,7 +58,7 @@ WORKDIR /tmp
 # Install OpenSSH and set the password for root to "Docker!"
 RUN apt-get update
 RUN apt-get install -qq openssh-server -y \
-      && echo "root:Docker!" | chpasswd 
+      && echo "root:Docker!" | chpasswd
 
 # Enable SSH root login with Password Authentication
 # RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
@@ -45,20 +66,26 @@ RUN apt-get install -qq openssh-server -y \
 # Copy 'sshd_config File' to /etc/ssh/
 COPY sshd_config /etc/ssh/
 
+# Set SSH Key Permissions
 RUN ssh-keygen -A
-RUN mkdir /var/run/sshd
+RUN mkdir -p /var/run/sshd
 
 # Set Working Directory
 WORKDIR /ipam
 
 # Install Engine Dependencies
+COPY ./engine/requirements.txt /code/requirements.txt
 COPY ./engine/requirements.lock.txt /code/requirements.lock.txt
 
 # Upgrade PIP
 RUN pip install --upgrade pip --progress-bar off
 
 # Install Dependencies
-RUN pip install --no-cache-dir -r /code/requirements.lock.txt --progress-bar off
+RUN if [ "${PROD_BUILD}" = true ]; then \
+  pip install --no-cache-dir -r /code/requirements.lock.txt --progress-bar off; \
+else \
+  pip install --no-cache-dir -r /code/requirements.txt --progress-bar off; \
+fi
 
 # Copy Engine Code
 COPY ./engine/app ./app
