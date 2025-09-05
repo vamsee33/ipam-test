@@ -1,0 +1,44 @@
+[
+  {
+    // Web App Resource Details
+    "ResourceType": "Microsoft.Web/sites",
+    "ResourceName": "ipam-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  },
+  {
+    // App Service Plan Resource Details
+    "ResourceType": "Microsoft.Web/serverfarms",
+    "ResourceName": "ipam-asp-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  },
+  {
+    // Managed Identity Resource Details
+    "ResourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+    "ResourceName": "ipam-mi-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  },
+  {
+    // Log Analytics Workspace Resource Details
+    "ResourceType": "Microsoft.OperationalInsights/workspaces",
+    "ResourceName": "ipam-law-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  },
+  {
+    // Cosmos DB Account Resource Details
+    "ResourceType": "Microsoft.DocumentDB/databaseAccounts",
+    "ResourceName": "ipam-dbacct-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  },
+  {
+    // Key Vault Resource Details
+    "ResourceType": "Microsoft.KeyVault/vaults",
+    "ResourceName": "ipam-kv-mahjhdi3465ru",
+    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
+    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+  }
+]
