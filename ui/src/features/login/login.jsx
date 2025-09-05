@@ -10,21 +10,41 @@ const Login = () => {
   const loginAttempted = React.useRef(false);
 
   React.useEffect(() => {
-    (async () => {
-      if (!isAuthenticated && inProgress === InteractionStatus.None && !loginAttempted.current) {
+    const handleAuthentication = async () => {
+      // Only attempt login if:
+      // 1. User is not authenticated
+      // 2. No interaction is currently in progress (this is the key check per MSAL docs)
+      // 3. We haven't already attempted login
+      if (
+        !isAuthenticated &&
+        inProgress === InteractionStatus.None &&
+        !loginAttempted.current
+      ) {
         loginAttempted.current = true;
 
-        await instance.loginRedirect(loginRequest).catch((e) => {
+        try {
+          await instance.loginRedirect(loginRequest);
+        } catch (error) {
           console.log("LOGIN ERROR:");
           console.log("--------------");
-          console.error(e);
+          console.error(error);
           console.log("--------------");
 
-          loginAttempted.current = false; // Reset on failure
-        });
+          // Reset the attempt flag on any error to allow retry
+          loginAttempted.current = false;
+        }
       }
-    })();
+    };
+
+    handleAuthentication();
   }, [isAuthenticated, inProgress, instance]);
+
+  // Reset login attempt flag when authentication state changes
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      loginAttempted.current = false;
+    }
+  }, [isAuthenticated]);
 
   return(null)
 };

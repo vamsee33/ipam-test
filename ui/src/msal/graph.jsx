@@ -1,40 +1,37 @@
 import axios from 'axios';
-
 import { InteractionRequiredAuthError, BrowserAuthError } from "@azure/msal-browser";
 
 import { msalInstance } from '../index';
 import { graphConfig } from "./authConfig";
 
 async function generateToken() {
-  // const activeAccount = msalInstance.getActiveAccount();
   const accounts = msalInstance.getAllAccounts();
 
-  // if (!activeAccount && accounts.length === 0) {
-  // }
+  if (accounts.length === 0) {
+    throw new Error("No user accounts found. Please login first.");
+  }
 
   const request = {
     scopes: ["User.Read", "Directory.Read.All"],
-    account: accounts[0],
     forceRefresh: true,
   };
 
-  await msalInstance.handleRedirectPromise();
+  const tokenRequest = {
+    ...request,
+    account: accounts[0]
+  };
 
   try {
-    const response = await msalInstance.acquireTokenSilent(request);
-
+    const response = await msalInstance.acquireTokenSilent(tokenRequest);
     return response.accessToken;
   } catch (e) {
-    if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
-      const response = await msalInstance.acquireTokenRedirect(request);
-      
-      return response.accessToken;
+    if (e instanceof InteractionRequiredAuthError ||
+        (e instanceof BrowserAuthError && e.errorCode === "monitor_window_timeout")) {
+
+      await msalInstance.acquireTokenRedirect(tokenRequest);
+      return null;
     } else {
-      console.log("ERROR FETCHING GRAPH TOKEN");
-      console.log("------------------");
-      console.log(e);
-      console.log("------------------");
-      throw(e);
+      throw e;
     }
   }
 }
@@ -46,7 +43,7 @@ graph.interceptors.request.use(
     const token = await generateToken();
 
     config.headers['Authorization'] = `Bearer ${token}`;
-  
+
     return config;
   },
   error => {
@@ -59,9 +56,23 @@ export function callMsGraph() {
   return graph
     .get(url)
     .then(response => response.data)
-    .catch(error => {
+    .catch(async error => {
       console.log("ERROR CALLING MSGRAPH");
       console.log(error);
+
+      // If we get a 401, the token might be invalid - try to get a fresh token
+      if (error.response?.status === 401) {
+        console.log("401 error - attempting to refresh Graph token");
+        try {
+          // Force a fresh token acquisition for Graph API
+          await generateToken();
+          // The generateToken function will trigger a redirect if needed
+        } catch (tokenError) {
+          console.log("Token refresh failed:", tokenError);
+          throw tokenError;
+        }
+      }
+
       throw error;
     });
 }

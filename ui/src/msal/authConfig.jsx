@@ -24,6 +24,9 @@ export const msalConfig = {
   system: {
     allowRedirectInIframe: false,
     preventCorsPreflight: true,
+    iframeHashTimeout: 10000, // Increase iframe timeout to 10 seconds
+    loadFrameTimeout: 10000, // Increase frame loading timeout
+    windowHashTimeout: 60000, // Increase overall timeout for redirect flows
     /**
      * Below you can configure MSAL.js logs. For more information, visit:
      * https://docs.microsoft.com/azure/active-directory/develop/msal-logging-js
