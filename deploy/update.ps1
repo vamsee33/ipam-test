@@ -1,7 +1,7 @@
 ###############################################################################################################
 ##
 ## Azure IPAM ZIP Deploy Updater Script
-## 
+##
 ###############################################################################################################
 
 # Set minimum version requirements
@@ -53,7 +53,7 @@ param(
     if(-Not ($_ | Get-Item) ) {
       throw [System.ArgumentException]::New("AssetFolder does not exist, please provide a pre-existing folder.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.DirectoryInfo]
   $AssetFolder,
@@ -70,7 +70,7 @@ param(
     if($_ -notmatch "(\.zip)") {
       throw [System.ArgumentException]::New("The file specified in the 'ZipFilePath' argument must be of type zip.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.FileInfo]
   $ZipFilePath
@@ -126,13 +126,13 @@ Function Get-BuildLogs {
     -Uri "https://$($msArmMap[$AzureCloud])/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.ContainerRegistry/registries/$RegistryName/runs/$BuildId/listLogSasUrl?api-version=2019-04-01" `
     -Authentication Bearer `
     -Token $accessToken
-  
+
   $logLink = $response.logLink
 
   $logs = Invoke-RestMethod `
     -Method GET `
     -Uri $logLink
-  
+
   return $logs
 }
 
@@ -293,7 +293,7 @@ Start-Transcript -Path $updateLog | Out-Null
 
 try {
   Write-Host
-  Write-Host "INFO: Verifying application exists" -ForegroundColor Green
+  Write-Host "INFO: Verifying application exists..." -ForegroundColor Green
 
   $appType = ""
   $isFunction = $false
@@ -308,19 +308,41 @@ try {
   } else {
     $appKind = $existingApp.Kind
     $appType = $($appKind.Split(",") -contains 'functionapp') ? 'Function' : 'App'
-    $isFunction = $appType -eq 'Function' ? $true : $false 
+    $isFunction = $appType -eq 'Function' ? $true : $false
   }
 
-  $appContainer = $existingApp.Kind.Split(",") -contains 'container'
-  
-  if ($appContainer) {
+  $isContainer = $appKind.Split(",") -contains 'container'
+
+  if ($isContainer) {
     $appType += "Container"
   }
 
   Write-Host "INFO: Application exists, detected type is " -ForegroundColor Green -NoNewline
   Write-Host $appType -ForegroundColor Cyan
 
-  if ($appContainer) {
+  Write-Host "INFO: Probing Status API for deployment details..." -ForegroundColor Green
+
+  $appUri = $existingApp.HostNames[0]
+  $statusUri = "https://${appUri}/api/status"
+  $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
+
+  if ($statusErr) {
+    Write-Host "ERROR: Unable to reach IPAM Status API!" -ForegroundColor Red
+    throw $statusErr
+  }
+
+  $stackType = $status.stack
+
+  if($stackType -eq 'LegacyCompose') {
+    Write-Host "WARNING: Legacy Docker Compose detected!" -ForegroundColor Yellow
+    Write-Host
+    Write-Host "Please follow the migration guide at " -ForegroundColor Blue -NoNewline
+    Write-Host "https://azure.github.io/ipam/#/migration/README" -ForegroundColor Cyan -NoNewline
+    Write-Host " for complete instructions." -ForegroundColor Blue
+    exit
+  }
+
+  if ($isContainer) {
     $appAcr = $existingApp.SiteConfig.LinuxFxVersion.Split('|')[1].Split('/')[0]
     $privateAcr = $appAcr -eq $IPAM_PUBLIC_ACR ? $false : $true
 
@@ -381,7 +403,7 @@ try {
     }
   }
 
-  if (-not $appContainer) {
+  if (-not $isContainer) {
     Write-Host "INFO: Verifying application Python version" -ForegroundColor Green
 
     $engineFolder = Join-Path -Path $ROOT_DIR -ChildPath 'engine'
@@ -403,18 +425,18 @@ try {
     }
   }
 
-  if ($appContainer) {
+  if ($isContainer) {
     if (-not $isFunction) {
       Write-Host "INFO: Detecting container distro..." -ForegroundColor Green
 
-      $appUri = $existingApp.HostNames[0]
-      $statusUri = "https://${appUri}/api/status"
-      $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
+      # $appUri = $existingApp.HostNames[0]
+      # $statusUri = "https://${appUri}/api/status"
+      # $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
 
-      if ($statusErr) {
-        Write-Host "ERROR: Unable to detect container distro!" -ForegroundColor Red
-        throw $statusErr
-      }
+      # if ($statusErr) {
+      #   Write-Host "ERROR: Unable to detect container distro!" -ForegroundColor Red
+      #   throw $statusErr
+      # }
 
       $containerType = $status.container.image_id
     }
