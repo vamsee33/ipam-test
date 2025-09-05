@@ -13,9 +13,7 @@ description: "IPAM - Azure IP Address Management made easy!"
 ---
 -->
 
-# Azure IPAM
-
-<!-- 
+<!--
 Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
 
 Guidance on onboarding samples to docs.microsoft.com/samples: https://review.docs.microsoft.com/help/onboard/admin/samples/process/onboarding?branch=master
@@ -23,7 +21,11 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-Azure IPAM is a lightweight solution developed on top of the Azure platform designed to help Azure customers manage their IP Address space easily and effectively. 
+<!-- markdownlint-disable MD034 -->
+
+# Azure IPAM
+
+Azure IPAM is a lightweight solution developed on top of the Azure platform designed to help Azure customers manage their IP Address space easily and effectively.
 
 ## Repo Contents
 
@@ -31,11 +33,12 @@ Azure IPAM is a lightweight solution developed on top of the Azure platform desi
 |----------------------|---------------------------------------------------------------|
 | `.github/`           | Bug Report, Issue Templates and GitHub Actions                |
 | `.vscode/`           | VSCode Configuration                                          |
-| `deploy/`            | Deployment Bicep Templates & PowerShell Deployment Scripts    |
+| `deploy/`            | Deployment Bicep Templates & PowerShell Deployment Script     |
 | `assets/`            | Compiled ZIP Archive                                          |
 | `docs/`              | Documentation Folder                                          |
 | `engine/`            | Engine Application Code                                       |
 | `examples/`          | Example Templates, Scripts and Code Snippets for Azure IPAM   |
+| `migrate/`           | Migration Bicep Templates & Powershell Migration Script       |
 | `lb/`                | Load Balancer (NGINX) Configs                                 |
 | `tests/`             | Testing Scripts                                               |
 | `tools/`             | Lifecycle Scripts (Build/Version/Update)                      |
@@ -58,10 +61,11 @@ Azure IPAM is a lightweight solution developed on top of the Azure platform desi
 
 ## Documentation
 
-IPAM uses both [Docsify](https://docsify.js.org/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) to present the project documentation, which can be found [here](https://azure.github.io/ipam/)
+IPAM uses both [Docsify](https://docsify.js.org/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) for all [project documentation](https://azure.github.io/ipam/).
 
 ## Questions or Comments for the team?
-The IPAM team welcomes questions and contributions from the community. We have set up a GitHub Discussions page [here](https://github.com/Azure/ipam/discussions) to make it easy to engage with the IPAM team without opening an issue.
+
+The IPAM team welcomes questions and contributions from the community. We have set up a [GitHub Discussions](https://github.com/Azure/ipam/discussions) page to make it easy to engage with the IPAM team without opening an issue.
 
 ## FAQ
 
@@ -69,11 +73,13 @@ The IPAM team welcomes questions and contributions from the community. We have s
 You realize that you do not have a clear picture as to what is deployed into your Azure environment and connected to your private IP address space. Or, you would like a way to easily manage, assign, and track your private IP addess space usage!
 
 **What does the roadmap for IPAM look like?**
+
 - We are assessing leveraging Azure Container Apps for hosting the two containers that make up the IPAM application
 - We are assessing support for multiple Tenants, as today the tool is designed with a single Tenant in mind
 - We are working on capturing IP address infromation for resources that support hybrid connectivity (ie Gateways)
 
 **Who are the awesome people that built this solution??**
+
 Matt and Harvey are Architects at Microsoft! We are always on the look out for interesting ways to help our customers overcome their challenges!
 
 ## Contributing
