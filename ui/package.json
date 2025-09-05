@@ -4,21 +4,21 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@azure/msal-browser": "^4.15.0",
-    "@azure/msal-react": "^3.0.15",
+    "@azure/msal-browser": "^4.22.0",
+    "@azure/msal-react": "^3.0.19",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@inovua/reactdatagrid-community": "^5.10.2",
-    "@mui/icons-material": "^7.2.0",
-    "@mui/lab": "^7.0.0-beta.14",
-    "@mui/material": "^7.2.0",
-    "@reduxjs/toolkit": "^2.8.2",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/lab": "^7.0.0-beta.17",
+    "@mui/material": "^7.3.2",
+    "@reduxjs/toolkit": "^2.9.0",
+    "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "axios": "^1.10.0",
-    "echarts": "^5.6.0",
-    "echarts-for-react": "^3.0.2",
+    "axios": "^1.11.0",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.4",
     "globals": "^16.3.0",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
@@ -29,9 +29,9 @@
     "react-dom": "^18.3.1",
     "react-draggable": "^4.5.0",
     "react-redux": "^9.2.0",
-    "react-router": "^7.7.0",
+    "react-router": "^7.8.2",
     "spinners-react": "^1.0.11",
-    "web-vitals": "^5.0.3"
+    "web-vitals": "^5.1.0"
   },
   "scripts": {
     "start": "vite",
@@ -50,14 +50,14 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.31.0",
-    "@vitejs/plugin-react": "^4.6.0",
-    "eslint": "^9.31.0",
+    "@eslint/js": "^9.34.0",
+    "@vitejs/plugin-react": "^5.0.2",
+    "eslint": "^9.34.0",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "serve": "^14.2.4",
-    "vite": "^7.0.5",
+    "serve": "^14.2.5",
+    "vite": "^7.1.4",
     "vite-plugin-eslint2": "^5.0.4"
   }
 }
