@@ -2,43 +2,43 @@
   {
     // Web App Resource Details
     "ResourceType": "Microsoft.Web/sites",
-    "ResourceName": "ipam-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-app-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   },
   {
     // App Service Plan Resource Details
     "ResourceType": "Microsoft.Web/serverfarms",
-    "ResourceName": "ipam-asp-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-asp-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   },
   {
     // Managed Identity Resource Details
     "ResourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
-    "ResourceName": "ipam-mi-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-identity-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   },
   {
     // Log Analytics Workspace Resource Details
     "ResourceType": "Microsoft.OperationalInsights/workspaces",
-    "ResourceName": "ipam-law-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-workspace-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   },
   {
     // Cosmos DB Account Resource Details
     "ResourceType": "Microsoft.DocumentDB/databaseAccounts",
-    "ResourceName": "ipam-dbacct-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-cosmosdb-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   },
   {
     // Key Vault Resource Details
     "ResourceType": "Microsoft.KeyVault/vaults",
-    "ResourceName": "ipam-kv-mahjhdi3465ru",
-    "ResourceGroup": "ipam-rg-mahjhdi3465ru",
-    "Subscription": "13655656-04c8-46a7-bc1b-244981d76d95"
+    "ResourceName": "ipam-keyvault-name",
+    "ResourceGroup": "ipam-rg-name",
+    "Subscription": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   }
 ]
