@@ -436,7 +436,7 @@ In the evant a migration issue should occur, you can rollback to your previous c
 - Container image replacement
 - App Service restart
 
-Expected downtime: 2-5 minutes
+Expected downtime: 10-15 minutes
 
 ### Q: What happens to my existing data?
 
@@ -446,14 +446,6 @@ Expected downtime: 2-5 minutes
 - Key Vault secrets are maintained
 - App settings are migrated
 - User configurations are preserved
-
-### Q: Can I migrate during business hours?
-
-**A**: While possible, it's recommended to:
-
-- Schedule during maintenance windows
-- Notify users of potential brief interruption
-- Test migration in development environment first
 
 ### Q: What if my deployment uses custom configurations?
 
