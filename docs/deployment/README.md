@@ -24,7 +24,7 @@ To successfully deploy the solution, the following prerequisites must be met:
 - [Docker (Linux)](https://docs.docker.com/engine/install/) / [Docker Desktop (Windows)](https://docs.docker.com/desktop/install/windows-install/) installed (optional)
   - Required only if you are building your own container image and running it locally for development/testing purposes
 
-> **NOTE:** An alternate [Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview) can be specific, but is **highly discouraged** as it will limit the visibility of the Azure IPAM platform. This option should only be used for testing or proof-of-concept deployments.
+> **NOTE:** An alternate [Management Group](https://learn.microsoft.com/azure/governance/management-groups/overview) can be specific, but is **highly discouraged** as it will limit the visibility of the Azure IPAM platform. This option should only be used for testing or proof-of-concept deployments.
 
 ## Deployment Overview
 
@@ -61,7 +61,7 @@ Connect-AzAccount
 Connect-AzAccount -UseDeviceAuthentication
 ```
 
-> **NOTE:** If you're connecting to an Azure Cloud besides Azure Public (such as Gov, China, etc.), you may need to specify the `-Environment` flag as described [here](https://learn.microsoft.com/powershell/azure/authenticate-azureps#sign-in-to-another-cloud) when using `Connect-AzAccount`
+> **NOTE:** If you're connecting to an Azure Cloud besides Azure Public (such as Gov, China, etc.), you may need to specify the `-Environment` flag as described in the [Authentication Methods](https://learn.microsoft.com/powershell/azure/authenticate-azureps#sign-in-to-another-cloud) documentation when using `Connect-AzAccount`
 
 ### Set the Active Subscription for Azure PowerShell
 
@@ -76,7 +76,7 @@ Set-AzContext -Subscription "28b502e2-323f-4e57-98db-743459176557"
 Set-AzContext -Subscription "Contoso IPAM Subscription"
 ```
 
-For additional information on authenticating with Azure PowerShell, refer to the documentation [here](https://learn.microsoft.com/powershell/azure/authenticate-azureps)
+For additional information on authenticating with Azure PowerShell, refer to the [documentation](https://learn.microsoft.com/powershell/azure/authenticate-azureps)
 
 ## Authenticate to Azure CLI (Optional)
 
@@ -105,7 +105,7 @@ az account set --subscription "28b502e2-323f-4e57-98db-743459176557"
 az account set --subscription "Contoso IPAM Subscription"
 ```
 
-For additional information on authenticating with Azure CLI, refer to the documentation [here](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
+For additional information on authenticating with Azure CLI, refer to the [documentation](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
 
 ## Clone the Github Repo
 
@@ -126,7 +126,7 @@ PS /ipam/deploy> .\deploy.ps1 <OPTIONS>
 To deploy the full solution, run the following from within the `deploy` directory:
 
 ```powershell
-./deploy.ps1 -Location "westus3" 
+./deploy.ps1 -Location "westus3"
  ```
 
 You have the ability to pass optional flags to the deployment script:
@@ -149,7 +149,7 @@ You have the ability to pass optional flags to the deployment script:
 
 > **NOTE 3:** Maximum of seven (7) characters. This is because the prefix is used to generate names for several different Azure resource types with varying maximum lengths.
 
-> **NOTE 4:** It is **highly discouraged** to use a [Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview) other than the [Root Management Group](https://learn.microsoft.com/azure/governance/management-groups/overview#root-management-group-for-each-directory) as it will limit the visibility of the Azure IPAM platform. This option should only be used for testing or proof-of-concept deployments.
+> **NOTE 4:** It is **highly discouraged** to use a [Management Group](https://learn.microsoft.com/azure/governance/management-groups/overview) other than the [Root Management Group](https://learn.microsoft.com/azure/governance/management-groups/overview#root-management-group-for-each-directory) as it will limit the visibility of the Azure IPAM platform. This option should only be used for testing or proof-of-concept deployments.
 
 **Customize the name of the App Registrations:**
 
