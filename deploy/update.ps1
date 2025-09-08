@@ -136,6 +136,36 @@ Function Get-BuildLogs {
   return $logs
 }
 
+Function Set-HealthCheck {
+  Param(
+    [Parameter(Mandatory=$true)]
+    [string]$AppName,
+    [Parameter(Mandatory=$true)]
+    [string]$ResourceGroupName
+  )
+
+  Set-AzResource `
+    -ResourceGroupName $ResourceGroupName `
+    -ResourceType "Microsoft.Web/sites/config" `
+    -ResourceName "${AppName}/web" `
+    -ApiVersion "2023-12-01" `
+    -Properties @{ healthCheckPath = "/api/status" } `
+    -Force `
+    | Out-Null
+
+  $existing = @{}
+
+  $site = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $AppName
+  $site.SiteConfig.AppSettings | ForEach-Object { $existing[$_.Name] = $_.Value }
+  $existing["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = "2"
+
+  Set-AzWebApp `
+    -ResourceGroupName $ResourceGroupName `
+    -Name $AppName `
+    -AppSettings $existing `
+    | Out-Null
+}
+
 Function Restart-IpamApp {
   Param(
     [Parameter(Mandatory=$true)]
@@ -320,26 +350,20 @@ try {
   Write-Host "INFO: Application exists, detected type is " -ForegroundColor Green -NoNewline
   Write-Host $appType -ForegroundColor Cyan
 
-  Write-Host "INFO: Probing Status API for deployment details..." -ForegroundColor Green
-
-  $appUri = $existingApp.HostNames[0]
-  $statusUri = "https://${appUri}/api/status"
-  $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
-
-  if ($statusErr) {
-    Write-Host "ERROR: Unable to reach IPAM Status API!" -ForegroundColor Red
-    throw $statusErr
-  }
-
-  $stackType = $status.stack
-
-  if($stackType -eq 'LegacyCompose') {
+  if($isContainer -and $existingApp.SiteConfig.LinuxFxVersion.StartsWith("COMPOSE|")) {
     Write-Host "WARNING: Legacy Docker Compose detected!" -ForegroundColor Yellow
     Write-Host
     Write-Host "Please follow the migration guide at " -ForegroundColor Blue -NoNewline
     Write-Host "https://azure.github.io/ipam/#/migration/README" -ForegroundColor Cyan -NoNewline
     Write-Host " for complete instructions." -ForegroundColor Blue
     exit
+  }
+
+  if ($null -eq $existingApp.SiteConfig.HealthCheckPath) {
+    Write-Host "WARNING: Health Check is missing!" -ForegroundColor Yellow
+    Write-Host "INFO: Adding application health check..." -ForegroundColor Green
+
+    Set-HealthCheck -ResourceGroupName $ResourceGroupName -AppName $AppName
   }
 
   if ($isContainer) {
@@ -429,14 +453,15 @@ try {
     if (-not $isFunction) {
       Write-Host "INFO: Detecting container distro..." -ForegroundColor Green
 
-      # $appUri = $existingApp.HostNames[0]
-      # $statusUri = "https://${appUri}/api/status"
-      # $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
+      $appUri = $existingApp.HostNames[0]
+      $statusUri = "https://${appUri}/api/status"
 
-      # if ($statusErr) {
-      #   Write-Host "ERROR: Unable to detect container distro!" -ForegroundColor Red
-      #   throw $statusErr
-      # }
+      try {
+        $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
+      } catch {
+        Write-Host "ERROR: Unable to detect container distro!" -ForegroundColor Red
+        throw $_
+      }
 
       $containerType = $status.container.image_id
     }
