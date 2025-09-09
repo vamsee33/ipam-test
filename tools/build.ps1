@@ -299,7 +299,7 @@ try {
   Write-Host "ZIP Asset Path: $fullPath" -ForegroundColor Yellow
 }
 catch {
-  $_ | Out-File -FilePath $errorLog-Append
+  $_ | Out-File -FilePath $errorLog -Append
   Write-Host "ERROR: Unable to build Azure IPAM Zip assets due to an exception, see log for detailed information!" -ForegroundColor red
   Write-Host "Build Log: $buildLog" -ForegroundColor Red
 
