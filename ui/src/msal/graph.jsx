@@ -8,7 +8,7 @@ async function generateToken() {
   const accounts = msalInstance.getAllAccounts();
 
   if (accounts.length === 0) {
-    throw new Error("No user accounts found. Please login first.");
+    throw new Error("No user accounts found. Please login or re-authenticate first.");
   }
 
   const request = {
