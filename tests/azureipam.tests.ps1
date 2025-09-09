@@ -132,7 +132,7 @@ BeforeAll {
   }
 
   # Parse JWT Access Token
-  Function Parse-JWTtoken {
+  Function Get-JWTPayload {
     [CmdletBinding()]
     Param(
       [Parameter(Mandatory=$true)]
