@@ -3,7 +3,7 @@
 
 ![logo](./images/ipam-logo.png ':size=45%')
 
-# IPAM <small>3.5.0</small>
+# IPAM <small>3.6.0</small>
 
 > Azure IP Address Management Made Easy
 
