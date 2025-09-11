@@ -88,6 +88,13 @@ $IPAM_PUBLIC_ACR = "azureipam.azurecr.io"
 # Set preference variables
 $ErrorActionPreference = "Stop"
 
+# Hide Azure PowerShell SDK Warnings
+$Env:SuppressAzurePowerShellBreakingChangeWarnings = $true
+
+# Hide Azure PowerShell SDK & Azure CLI Survey Prompts
+$Env:AzSurveyMessage = $false
+$Env:AZURE_CORE_SURVEY_MESSAGE = $false
+
 # Set Log File Location
 $logPath = Join-Path -Path $ROOT_DIR -ChildPath "logs"
 New-Item -ItemType Directory -Path $logpath -Force | Out-Null
