@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@azure/msal-browser": "^4.22.0",
+    "@azure/msal-browser": "^4.22.1",
     "@azure/msal-react": "^3.0.19",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -19,7 +19,7 @@
     "axios": "^1.11.0",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.4",
-    "globals": "^16.3.0",
+    "globals": "^16.4.0",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "moment": "^2.30.1",
