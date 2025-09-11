@@ -1,20 +1,29 @@
-ARG VARIANT=3.9-bullseye
+ARG VARIANT=3.11-bullseye
 FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 
+# Set Default Port
 ARG PORT=8000
 
+# Set the Working Directory
 WORKDIR /code
 
+# Set Environment Variable
 ENV PORT=$PORT
 
+# Copy Requirements File
 COPY ./requirements.txt /code/requirements.txt
 
+# Upgrade PIP
 RUN pip install --upgrade pip --progress-bar off
 
+# Install Dependencies
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
+# Copy Application Sources
 COPY ./app /code/app
 
+# Expose Port
 EXPOSE $PORT
 
+# Execute Startup Script
 CMD uvicorn "app.main:app" --reload --host "0.0.0.0" --port $PORT

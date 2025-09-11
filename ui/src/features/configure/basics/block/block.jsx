@@ -2,7 +2,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import { styled } from "@mui/material/styles";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { isEmpty} from "lodash";
 

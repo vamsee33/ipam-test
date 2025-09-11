@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 import { cloneDeep, pickBy, orderBy, isEmpty, merge } from 'lodash';
 

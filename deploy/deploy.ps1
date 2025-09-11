@@ -1,7 +1,7 @@
 ###############################################################################################################
 ##
 ## Azure IPAM Solution Deployment Script
-## 
+##
 ###############################################################################################################
 
 # Set minimum version requirements
@@ -207,7 +207,7 @@ param(
     if ($_ -notmatch "(\.json)") {
       throw [System.ArgumentException]::New("The file specified in the 'ParameterFile' argument must be of type json.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.FileInfo]
   $ParameterFile,
@@ -228,7 +228,7 @@ param(
     if ($_ -notmatch "(\.zip)") {
       throw [System.ArgumentException]::New("The file specified in the 'ZipFilePath' argument must be of type zip.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.FileInfo]
   $ZipFilePath
@@ -420,20 +420,24 @@ process {
       AZURE_CHINA         = "management.chinacloudapi.cn"
     }
 
-    $accessToken = (Get-AzAccessToken).Token | ConvertTo-SecureString -AsPlainText
+    $accessToken = (Get-AzAccessToken).Token
+
+    if ($accessToken -isnot [System.Security.SecureString]) {
+      $accessToken = ConvertTo-SecureString $accessToken -AsPlainText -Force
+    }
 
     $response = Invoke-RestMethod `
       -Method POST `
       -Uri "https://$($msArmMap[$AzureCloud])/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.ContainerRegistry/registries/$RegistryName/runs/$BuildId/listLogSasUrl?api-version=2019-04-01" `
       -Authentication Bearer `
       -Token $accessToken
-    
+
     $logLink = $response.logLink
 
     $logs = Invoke-RestMethod `
       -Method GET `
       -Uri $logLink
-    
+
     return $logs
   }
 
@@ -538,7 +542,7 @@ process {
 
     $engineApiSettings = @{
       Oauth2PermissionScope = @(
-        @{ 
+        @{
           AdminConsentDescription = "Allows the IPAM UI to access IPAM Engine API as the signed-in user."
           AdminConsentDisplayName = "Access IPAM Engine API"
           Id                      = $engineApiGuid
@@ -601,7 +605,7 @@ process {
 
       $uiObject = Get-AzADApplication -ApplicationId $uiApp.AppId
     }
-    
+
     $engineObject = Get-AzADApplication -ApplicationId $engineApp.AppId
 
     # Create IPAM UI Service Principal (If DisableUI not specified)
@@ -705,7 +709,9 @@ process {
       ?? [System.Version]([array](Get-InstalledModule | Where-Object { $_.Name -like "Microsoft.Graph.*" } | Select-Object -ExpandProperty Version | Sort-Object | Get-Unique))[0]
 
     if ($graphVersion.Major -gt 1) {
-      $accesstoken = ConvertTo-SecureString $accesstoken -AsPlainText -Force
+      if ($accesstoken -isnot [System.Security.SecureString]) {
+        $accesstoken = ConvertTo-SecureString $accesstoken -AsPlainText -Force
+      }
     }
 
     Write-Host "INFO: Logging in to Microsoft Graph" -ForegroundColor Green
@@ -730,7 +736,7 @@ process {
       foreach ($scope in $uiGraphScopes) {
         $msGraphId = Get-AzADServicePrincipal `
           -ApplicationId $scope.scopeId
-      
+
         New-MgOauth2PermissionGrant `
           -ResourceId $msGraphId.Id `
           -Scope $scope.scopes `
@@ -943,25 +949,25 @@ process {
       [Parameter(Mandatory = $true)]
       [System.IO.DirectoryInfo]$AssetFolder
     )
-  
+
     $ZipFilePath = Join-Path -Path $AssetFolder.FullName -ChildPath $ZipFileName
-  
+
     try {
       $GitHubURL = "https://api.github.com/repos/$GitHubUserName/$GitHubRepoName/releases/latest"
-  
+
       Write-Host "INFO: Target GitHub Repo is " -ForegroundColor Green -NoNewline
       Write-Host "$GitHubUserName/$GitHubRepoName" -ForegroundColor Cyan
       Write-Host "INFO: Fetching download URL..." -ForegroundColor Green
-  
+
       $GHResponse = Invoke-WebRequest -Method GET -Uri $GitHubURL
       $JSONResponse = $GHResponse.Content | ConvertFrom-Json
       $AssetList = $JSONResponse.assets
       $Asset = $AssetList | Where-Object { $_.name -eq $ZipFileName }
       $DownloadURL = $Asset.browser_download_url
-  
+
       Write-Host "INFO: Downloading ZIP Archive to " -ForegroundColor Green -NoNewline
       Write-Host $ZipFilePath -ForegroundColor Cyan
-  
+
       Invoke-WebRequest -Uri $DownloadURL -OutFile $ZipFilePath
     }
     catch {
@@ -991,6 +997,11 @@ process {
 
     if ($UseAPI) {
       $accessToken = (Get-AzAccessToken).Token
+
+      if ($accessToken -is [System.Security.SecureString]) {
+        $accessToken = ConvertFrom-SecureString $accessToken -AsPlainText -Force
+      }
+
       $zipContents = Get-Item -Path $ZipFilePath
 
       $publishProfile = Get-AzWebAppPublishingProfile -Name $AppName -ResourceGroupName $ResourceGroupName
@@ -1052,7 +1063,7 @@ process {
     $appServiceEndpoint = "https://$Endpoint"
 
     # Update UI Application with single-page application configuration
-    Update-AzADApplication -ApplicationId $UIAppId -SPARedirectUri $appServiceEndpoint 
+    Update-AzADApplication -ApplicationId $UIAppId -SPARedirectUri $appServiceEndpoint
 
     Write-Host "INFO: UI Application SPA configuration update complete" -ForegroundColor Green
   }
@@ -1232,16 +1243,16 @@ process {
           Extension = 'deb'
           Port      = 8080
           Images    = @{
-            Build = 'node:18-slim'
-            Serve = 'python:3.9-slim'
+            Build = 'node:22-slim'
+            Serve = 'python:3.11-slim'
           }
         }
         RHEL = @{
           Extension = 'rhel'
           Port      = 8080
           Images    = @{
-            Build = 'registry.access.redhat.com/ubi8/nodejs-18'
-            Serve = 'registry.access.redhat.com/ubi8/python-39'
+            Build = 'registry.access.redhat.com/ubi8/nodejs-22'
+            Serve = 'registry.access.redhat.com/ubi8/python-311'
           }
         }
       }
@@ -1369,7 +1380,7 @@ process {
 
     if ($env:CI) {
       Write-Host $_.ToString()
-    }  
+    }
 
     exit 1
   }

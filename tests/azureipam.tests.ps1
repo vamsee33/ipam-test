@@ -4,7 +4,10 @@ BeforeAll {
   Set-StrictMode -Version Latest
 
   [string]$baseUrl = "$env:IPAM_URL/api"
-  [System.Security.SecureString]$accessToken = ConvertTo-SecureString (Get-AzAccessToken -ResourceUrl api://$env:IPAM_ENGINE_APP_ID).Token -AsPlainText
+
+  $token = (Get-AzAccessToken -ResourceUrl api://$env:IPAM_ENGINE_APP_ID).Token
+  [System.Security.SecureString]$accessToken = if ($token -is [System.Security.SecureString]) { $token } else { ConvertTo-SecureString $token -AsPlainText }
+
   [hashtable]$headers = @{
     "Content-Type" = "application/json"
   }
@@ -129,7 +132,7 @@ BeforeAll {
   }
 
   # Parse JWT Access Token
-  Function Parse-JWTtoken {
+  Function Get-JWTPayload {
     [CmdletBinding()]
     Param(
       [Parameter(Mandatory=$true)]
@@ -169,7 +172,7 @@ BeforeAll {
 
     # Convert from JSON to PSObject
     $tokenObj = $tokenJson | ConvertFrom-Json
-    
+
     Write-Output $headerObj, $tokenObj
   }
 }
@@ -199,7 +202,7 @@ Context 'Spaces' {
     New-ApiResource '/spaces' $spaceB
 
     $spaces, $spacesStatus = Get-ApiResource '/spaces'
-    
+
     $spaces.Count | Should -Be 2
     $spaces.Name -contains 'TestSpace01' | Should -Be $true
     $spaces.Name -contains 'TestSpace02' | Should -Be $true
@@ -210,7 +213,7 @@ Context 'Spaces' {
     Remove-ApiResource '/spaces/TestSpace02'
 
     $spaces, $spacesStatus = Get-ApiResource '/spaces'
-    
+
     $spaces.Count | Should -Be 1
     $spaces.Name -contains 'TestSpace01' | Should -Be $true
     $spaces.Name -contains 'TestSpace02' | Should -Be $false
@@ -234,7 +237,7 @@ Context 'Spaces' {
     Update-ApiResource '/spaces/TestSpace01' $update
 
     $spaces, $spacesStatus = Get-ApiResource '/spaces'
-    
+
     $spaces.Count | Should -Be 1
     $spaces[0].Name -eq 'TestSpaceA' | Should -Be $true
     $spaces[0].Desc -eq 'Test Space A' | Should -Be $true
@@ -275,7 +278,7 @@ Context 'Blocks' {
     New-ApiResource '/spaces/TestSpaceA/blocks' $blockB
 
     $blocks, $blocksStatus = Get-ApiResource '/spaces/TestSpaceA/blocks'
-    
+
     $blocks.Count | Should -Be 2
     $blocks.Name -contains 'TestBlock01' | Should -Be $true
     $blocks.Name -contains 'TestBlock02' | Should -Be $true
@@ -286,7 +289,7 @@ Context 'Blocks' {
     Remove-ApiResource '/spaces/TestSpaceA/blocks/TestBlock02'
 
     $blocks, $blocksStatus = Get-ApiResource '/spaces/TestSpaceA/blocks'
-    
+
     $blocks.Count | Should -Be 1
     $blocks.Name -contains 'TestBlock01' | Should -Be $true
     $blocks.Name -contains 'TestBlock02' | Should -Be $false
@@ -310,7 +313,7 @@ Context 'Blocks' {
     Update-ApiResource '/spaces/TestSpaceA/blocks/TestBlock01' $update
 
     $blocks, $blocksStatus = Get-ApiResource '/spaces/TestSpaceA/blocks'
-    
+
     $blocks.Count | Should -Be 1
     $blocks[0].Name -eq 'TestBlockA' | Should -Be $true
     $blocks[0].Cidr -eq '10.1.0.0/16' | Should -Be $true
@@ -331,7 +334,7 @@ Context 'Networks' {
   It 'Verify No Networks Exist in Block' {
 
     $networks, $networksStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/networks'
-    
+
     $networks | Should -Be $null
   }
 
@@ -399,7 +402,7 @@ Context 'External Networks' {
   It 'Verify No External Networks Exist in Block' {
 
     $externals, $externalsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals'
-    
+
     $externals.Count | Should -Be 0
   }
 
@@ -414,7 +417,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals' $script:externalA
 
     $externals, $externalsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals'
-    
+
     $externals.Count | Should -Be 1
 
     $externals[0].Name -eq "ExternalNetA" | Should -Be $true
@@ -433,7 +436,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals' $script:externalB
 
     $externals, $externalsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals'
-    
+
     $externals.Count | Should -Be 2
 
     $externals[0].Name -eq "ExternalNetA" | Should -Be $true
@@ -449,7 +452,7 @@ Context 'External Networks' {
   It 'Get a Specific External Network' {
 
     $external, $externalStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetB'
-    
+
     $external.Name -eq "ExternalNetB" | Should -Be $true
     $external.Desc -eq "External Network B" | Should -Be $true
     $external.Cidr -eq "10.1.2.0/24" | Should -Be $true
@@ -478,7 +481,7 @@ Context 'External Networks' {
     Update-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetB' $update
 
     $externals, $externalsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals'
-    
+
     $externals.Count | Should -Be 2
 
     $externals[0].Name -eq "ExternalNetA" | Should -Be $true
@@ -495,7 +498,7 @@ Context 'External Networks' {
     Remove-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetC'
 
     $externals, $externalsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals'
-    
+
     $externals.Count | Should -Be 1
 
     $externals[0].Name -eq "ExternalNetA" | Should -Be $true
@@ -507,7 +510,7 @@ Context 'External Networks' {
   It 'Verify No External Subnets Exist in External Network' {
 
     $subnets, $subnetsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets'
-    
+
     $subnets.Count | Should -Be 0
   }
 
@@ -522,7 +525,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets' $script:subnetA
 
     $subnets, $subnetsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets'
-    
+
     $subnets.Count | Should -Be 1
 
     $subnets[0].Name -eq "SubnetA" | Should -Be $true
@@ -541,7 +544,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets' $script:subnetB
 
     $subnets, $subnetsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets'
-    
+
     $subnets.Count | Should -Be 2
 
     $subnets[0].Name -eq "SubnetA" | Should -Be $true
@@ -557,7 +560,7 @@ Context 'External Networks' {
   It 'Get Specific External Subnet' {
 
     $subnet, $subnetStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetB'
-    
+
     $subnet.Name -eq "SubnetB" | Should -Be $true
     $subnet.Desc -eq "Subnet B" | Should -Be $true
     $subnet.Cidr -eq "10.1.1.64/26" | Should -Be $true
@@ -586,7 +589,7 @@ Context 'External Networks' {
     Update-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetB' $update
 
     $subnets, $subnetsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets'
-    
+
     $subnets.Count | Should -Be 2
 
     $subnets[0].Name -eq "SubnetA" | Should -Be $true
@@ -603,7 +606,7 @@ Context 'External Networks' {
     Remove-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetC'
 
     $subnets, $subnetsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets'
-    
+
     $subnets.Count | Should -Be 1
 
     $subnets[0].Name -eq "SubnetA" | Should -Be $true
@@ -615,7 +618,7 @@ Context 'External Networks' {
   It 'Verify No External Endpoints Exist in External Subnet' {
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 0
   }
 
@@ -630,7 +633,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints' $script:endpointA
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 1
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -649,7 +652,7 @@ Context 'External Networks' {
     New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints' $script:endpointB
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 2
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -685,7 +688,7 @@ Context 'External Networks' {
     Set-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints' $body
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 4
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -715,7 +718,7 @@ Context 'External Networks' {
     Remove-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints' $body
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 2
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -731,7 +734,7 @@ Context 'External Networks' {
   It 'Get a Specific External Endpoint' {
 
     $endpoint, $endpointStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints/EndpointA'
-    
+
     $endpoint.Name | Should -Be "EndpointA"
     $endpoint.Desc | Should -Be "Endpoint A"
     $endpoint.IP | Should -Be "10.1.1.4"
@@ -760,7 +763,7 @@ Context 'External Networks' {
     Update-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints/EndpointB' $update
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 2
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -777,7 +780,7 @@ Context 'External Networks' {
     Remove-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints/EndpointC'
 
     $endpoints, $endpointsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/externals/ExternalNetA/subnets/SubnetA/endpoints'
-    
+
     $endpoints.Count | Should -Be 1
 
     $endpoints[0].Name -eq "EndpointA" | Should -Be $true
@@ -791,7 +794,7 @@ Context 'Reservations' {
   It 'Verify No Reservations Exist in Block' {
 
     $reservations, $reservationsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/reservations'
-    
+
     $reservations | Should -Be $null
   }
 
@@ -817,7 +820,7 @@ Context 'Reservations' {
     $script:reservationC, $reservationCStatus = New-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/reservations' $bodyC
 
     $reservations, $reservationsStatus = Get-ApiResource '/spaces/TestSpaceA/blocks/TestBlockA/reservations'
-    
+
     $reservations.Count | Should -Be 3
 
     $reservations[0].Space -eq "TestSpaceA" | Should -Be $true
@@ -898,7 +901,7 @@ Context 'Reservations' {
   It 'Get a Specific Reservation' {
 
     $reservation, $reservationStatus = Get-ApiResource "/spaces/TestSpaceA/blocks/TestBlockA/reservations/$($script:reservationC.Id)"
-    
+
     $reservation.Space -eq "TestSpaceA" | Should -Be $true
     $reservation.Block -eq "TestBlockA" | Should -Be $true
     $reservation.Desc -eq "Test Reservation C" | Should -Be $true
@@ -938,7 +941,7 @@ Context 'Tools' {
     New-ApiResource '/spaces' $toolsSpace
 
     $spaces, $spacesStatus = Get-ApiResource '/spaces'
-    
+
     $spaces.Count | Should -Be 2
     $spaces.Name -eq 'TestSpaceA' | Should -Be $true
     $spaces.Name -eq 'ToolsSpace' | Should -Be $true
@@ -954,7 +957,7 @@ Context 'Tools' {
     New-ApiResource '/spaces/ToolsSpace/blocks' $toolsBlock
 
     $blocks, $blocksStatus = Get-ApiResource '/spaces/ToolsSpace/blocks'
-    
+
     $blocks.Count | Should -Be 1
 
     $blocks.Name -eq 'ToolsBlock' | Should -Be $true

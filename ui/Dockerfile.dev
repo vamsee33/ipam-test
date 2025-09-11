@@ -1,6 +1,7 @@
-ARG VARIANT=18-bullseye
+ARG VARIANT=22-bullseye
 FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:${VARIANT}
 
+# Set Default Port
 ARG PORT=3000
 
 # Set Working Directory

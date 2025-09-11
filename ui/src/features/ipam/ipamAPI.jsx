@@ -1,45 +1,35 @@
 import axios from 'axios';
-
 import { InteractionRequiredAuthError, BrowserAuthError } from "@azure/msal-browser";
 
-import {
-  apiRequest
-} from '../../msal/authConfig';
-
 import { msalInstance } from '../../index';
+import { apiRequest } from '../../msal/authConfig';
 import { getEngineURL } from '../../global/globals';
 
 const ENGINE_URL = getEngineURL();
 
 async function generateToken() {
-  // const activeAccount = msalInstance.getActiveAccount();
   const accounts = msalInstance.getAllAccounts();
 
-  // if (!activeAccount && accounts.length === 0) {
-  // }
+  if (accounts.length === 0) {
+    throw new Error("No user accounts found. Please login first.");
+  }
 
-  const request = {
-    scopes: apiRequest.scopes,
+  const tokenRequest = {
+    ...apiRequest,
     account: accounts[0]
   };
 
-  await msalInstance.handleRedirectPromise();
-
   try {
-    const response = await msalInstance.acquireTokenSilent(request);
-
+    const response = await msalInstance.acquireTokenSilent(tokenRequest);
     return response.accessToken;
   } catch (e) {
-    if (e instanceof InteractionRequiredAuthError || e instanceof BrowserAuthError) {
-      const response = await msalInstance.acquireTokenRedirect(request);
-      
-      return response.accessToken;
+    if (e instanceof InteractionRequiredAuthError ||
+        (e instanceof BrowserAuthError && e.errorCode === "monitor_window_timeout")) {
+
+      await msalInstance.acquireTokenRedirect(tokenRequest);
+      return null;
     } else {
-      console.log("ERROR FETCHING API TOKEN");
-      console.log("------------------");
-      console.log(e);
-      console.log("------------------");
-      throw(e);
+      throw e;
     }
   }
 }
@@ -51,7 +41,7 @@ api.interceptors.request.use(
     const token = await generateToken();
 
     config.headers['Authorization'] = `Bearer ${token}`;
-  
+
     return config;
   },
   error => {

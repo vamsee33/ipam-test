@@ -7,17 +7,44 @@ import { loginRequest } from "../../msal/authConfig";
 const Login = () => {
   const { instance, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
+  const loginAttempted = React.useRef(false);
 
   React.useEffect(() => {
-    if (!isAuthenticated && inProgress === InteractionStatus.None) {
-      instance.loginRedirect(loginRequest).catch((e) => {
-        console.log("LOGIN ERROR:");
-        console.log("--------------");
-        console.error(e);
-        console.log("--------------");
-      });
-    }
+    const handleAuthentication = async () => {
+      // Only attempt login if:
+      // 1. User is not authenticated
+      // 2. No interaction is currently in progress (this is the key check per MSAL docs)
+      // 3. We haven't already attempted login
+      if (
+        !isAuthenticated &&
+        inProgress === InteractionStatus.None &&
+        !loginAttempted.current
+      ) {
+        loginAttempted.current = true;
+
+        try {
+          await instance.loginRedirect(loginRequest);
+        } catch (error) {
+          console.log("LOGIN ERROR:");
+          console.log("--------------");
+          console.error(error);
+          console.log("--------------");
+
+          // Reset the attempt flag on any error to allow retry
+          loginAttempted.current = false;
+        }
+      }
+    };
+
+    handleAuthentication();
   }, [isAuthenticated, inProgress, instance]);
+
+  // Reset login attempt flag when authentication state changes
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      loginAttempted.current = false;
+    }
+  }, [isAuthenticated]);
 
   return(null)
 };

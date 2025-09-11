@@ -1,3 +1,5 @@
+// import { LogLevel } from '@azure/msal-browser';
+
 import {
   ENGINE_APP_ID,
   UI_APP_ID,
@@ -16,9 +18,27 @@ export const msalConfig = {
     redirectUri: window.location.origin,
   },
   cache: {
-    cacheLocation: "sessionStorage", // This configures where your cache will be stored
+    cacheLocation: "localStorage", // This configures where your cache will be stored
     storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
   },
+  system: {
+    allowRedirectInIframe: false,
+    preventCorsPreflight: true,
+    iframeHashTimeout: 10000, // Increase iframe timeout to 10 seconds
+    loadFrameTimeout: 10000, // Increase frame loading timeout
+    windowHashTimeout: 60000, // Increase overall timeout for redirect flows
+    /**
+     * Below you can configure MSAL.js logs. For more information, visit:
+     * https://docs.microsoft.com/azure/active-directory/develop/msal-logging-js
+     */
+    // loggerOptions: {
+    //     loggerCallback(logLevel, message) {
+    //         console.log(message);
+    //     },
+    //     logLevel: LogLevel.Trace,
+    //     piiLoggingEnabled: true // Set to true to enable PII logging. This is not recommended in production.
+    // }
+  }
 };
 
 export const loginRequest = {

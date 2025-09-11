@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { useSnackbar } from "notistack";
 
@@ -264,7 +264,7 @@ const Generator = () => {
         return prefixMask;
       });
 
-      let availableMasks = cidrMasks.filter((opt) => opt.value >= Math.max(...maskList) && opt.value <= 29);
+      let availableMasks = cidrMasks.filter((opt) => opt.value >= Math.min(...maskList) && opt.value <= 29);
 
       setMaskOptions(availableMasks);
       setSelectedMask(availableMasks[0]);

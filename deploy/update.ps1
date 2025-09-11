@@ -1,7 +1,7 @@
 ###############################################################################################################
 ##
 ## Azure IPAM ZIP Deploy Updater Script
-## 
+##
 ###############################################################################################################
 
 # Set minimum version requirements
@@ -53,7 +53,7 @@ param(
     if(-Not ($_ | Get-Item) ) {
       throw [System.ArgumentException]::New("AssetFolder does not exist, please provide a pre-existing folder.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.DirectoryInfo]
   $AssetFolder,
@@ -70,7 +70,7 @@ param(
     if($_ -notmatch "(\.zip)") {
       throw [System.ArgumentException]::New("The file specified in the 'ZipFilePath' argument must be of type zip.")
     }
-    return $true 
+    return $true
   })]
   [System.IO.FileInfo]
   $ZipFilePath
@@ -87,6 +87,13 @@ $IPAM_PUBLIC_ACR = "azureipam.azurecr.io"
 
 # Set preference variables
 $ErrorActionPreference = "Stop"
+
+# Hide Azure PowerShell SDK Warnings
+$Env:SuppressAzurePowerShellBreakingChangeWarnings = $true
+
+# Hide Azure PowerShell SDK & Azure CLI Survey Prompts
+$Env:AzSurveyMessage = $false
+$Env:AZURE_CORE_SURVEY_MESSAGE = $false
 
 # Set Log File Location
 $logPath = Join-Path -Path $ROOT_DIR -ChildPath "logs"
@@ -126,14 +133,44 @@ Function Get-BuildLogs {
     -Uri "https://$($msArmMap[$AzureCloud])/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.ContainerRegistry/registries/$RegistryName/runs/$BuildId/listLogSasUrl?api-version=2019-04-01" `
     -Authentication Bearer `
     -Token $accessToken
-  
+
   $logLink = $response.logLink
 
   $logs = Invoke-RestMethod `
     -Method GET `
     -Uri $logLink
-  
+
   return $logs
+}
+
+Function Set-HealthCheck {
+  Param(
+    [Parameter(Mandatory=$true)]
+    [string]$AppName,
+    [Parameter(Mandatory=$true)]
+    [string]$ResourceGroupName
+  )
+
+  Set-AzResource `
+    -ResourceGroupName $ResourceGroupName `
+    -ResourceType "Microsoft.Web/sites/config" `
+    -ResourceName "${AppName}/web" `
+    -ApiVersion "2023-12-01" `
+    -Properties @{ healthCheckPath = "/api/status" } `
+    -Force `
+    | Out-Null
+
+  $existing = @{}
+
+  $site = Get-AzWebApp -ResourceGroupName $ResourceGroupName -Name $AppName
+  $site.SiteConfig.AppSettings | ForEach-Object { $existing[$_.Name] = $_.Value }
+  $existing["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = "2"
+
+  Set-AzWebApp `
+    -ResourceGroupName $ResourceGroupName `
+    -Name $AppName `
+    -AppSettings $existing `
+    | Out-Null
 }
 
 Function Restart-IpamApp {
@@ -293,7 +330,7 @@ Start-Transcript -Path $updateLog | Out-Null
 
 try {
   Write-Host
-  Write-Host "INFO: Verifying application exists" -ForegroundColor Green
+  Write-Host "INFO: Verifying application exists..." -ForegroundColor Green
 
   $appType = ""
   $isFunction = $false
@@ -308,19 +345,35 @@ try {
   } else {
     $appKind = $existingApp.Kind
     $appType = $($appKind.Split(",") -contains 'functionapp') ? 'Function' : 'App'
-    $isFunction = $appType -eq 'Function' ? $true : $false 
+    $isFunction = $appType -eq 'Function' ? $true : $false
   }
 
-  $appContainer = $existingApp.Kind.Split(",") -contains 'container'
-  
-  if ($appContainer) {
+  $isContainer = $appKind.Split(",") -contains 'container'
+
+  if ($isContainer) {
     $appType += "Container"
   }
 
   Write-Host "INFO: Application exists, detected type is " -ForegroundColor Green -NoNewline
   Write-Host $appType -ForegroundColor Cyan
 
-  if ($appContainer) {
+  if($isContainer -and $existingApp.SiteConfig.LinuxFxVersion.StartsWith("COMPOSE|")) {
+    Write-Host "WARNING: Legacy Docker Compose detected!" -ForegroundColor Yellow
+    Write-Host
+    Write-Host "Please follow the migration guide at " -ForegroundColor Blue -NoNewline
+    Write-Host "https://azure.github.io/ipam/#/migration/README" -ForegroundColor Cyan -NoNewline
+    Write-Host " for complete instructions." -ForegroundColor Blue
+    exit
+  }
+
+  if ($null -eq $existingApp.SiteConfig.HealthCheckPath) {
+    Write-Host "WARNING: Health Check is missing!" -ForegroundColor Yellow
+    Write-Host "INFO: Adding application health check..." -ForegroundColor Green
+
+    Set-HealthCheck -ResourceGroupName $ResourceGroupName -AppName $AppName
+  }
+
+  if ($isContainer) {
     $appAcr = $existingApp.SiteConfig.LinuxFxVersion.Split('|')[1].Split('/')[0]
     $privateAcr = $appAcr -eq $IPAM_PUBLIC_ACR ? $false : $true
 
@@ -381,7 +434,7 @@ try {
     }
   }
 
-  if (-not $appContainer) {
+  if (-not $isContainer) {
     Write-Host "INFO: Verifying application Python version" -ForegroundColor Green
 
     $engineFolder = Join-Path -Path $ROOT_DIR -ChildPath 'engine'
@@ -403,17 +456,18 @@ try {
     }
   }
 
-  if ($appContainer) {
+  if ($isContainer) {
     if (-not $isFunction) {
       Write-Host "INFO: Detecting container distro..." -ForegroundColor Green
 
       $appUri = $existingApp.HostNames[0]
       $statusUri = "https://${appUri}/api/status"
-      $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
 
-      if ($statusErr) {
+      try {
+        $status = Invoke-RestMethod -Method Get -Uri $statusUri -ErrorVariable statusErr -ErrorAction SilentlyContinue
+      } catch {
         Write-Host "ERROR: Unable to detect container distro!" -ForegroundColor Red
-        throw $statusErr
+        throw $_
       }
 
       $containerType = $status.container.image_id
@@ -426,16 +480,16 @@ try {
         Extension = 'deb'
         Port = 80
         Images = @{
-          Build = 'node:18-slim'
-          Serve = 'python:3.9-slim'
+          Build = 'node:22-slim'
+          Serve = 'python:3.11-slim'
         }
       }
       rhel = @{
         Extension = 'rhel'
         Port = 8080
         Images = @{
-          Build = 'registry.access.redhat.com/ubi8/nodejs-18'
-          Serve = 'registry.access.redhat.com/ubi8/python-39'
+          Build = 'registry.access.redhat.com/ubi8/nodejs-22'
+          Serve = 'registry.access.redhat.com/ubi8/python-311'
         }
       }
     }

@@ -1,7 +1,7 @@
 ###############################################################################################################
 ##
 ## Azure IPAM Zip Deploy Archive Creation Script
-## 
+##
 ###############################################################################################################
 
 # Set minimum version requirements
@@ -11,7 +11,7 @@
 param(
   [Parameter(ValueFromPipelineByPropertyName = $true,
     Mandatory = $true)]
-  [ValidateScript({ 
+  [ValidateScript({
     if (Test-Path -LiteralPath $_ -PathType Container) {
       return $true
     }
@@ -32,15 +32,21 @@ param(
     throw 'File name contains invalid characters'
   })]
   [string]
-  $FileName = 'ipam.zip'
+  $FileName = 'ipam.zip',
+
+  # Use this to use "npm install" instead of "npm ci" and direct pip to install "requirements.txt" instead of "requirements.lock.txt"
+  [Parameter(ValueFromPipelineByPropertyName = $true,
+    Mandatory = $false)]
+  [switch]
+  $ManifestOnly
 )
 
 # Root Directory
 $ROOT_DIR = (Get-Item $($MyInvocation.MyCommand.Path)).Directory.Parent.FullName
 
 # Define minimum NodeJS and NPM versions required to build the Azure IPAM UI solution
-$MIN_NODE_VERSION = [version]'18.0.0'
-$MIN_NPM_VERSION = [version]'8.6.0'
+$MIN_NODE_VERSION = [version]'22.12.0'
+$MIN_NPM_VERSION = [version]'10.9.2'
 
 # Load Python version required to build the Azure IPAM UI solution
 $engineAppDir = Join-Path -Path $ROOT_DIR -ChildPath "engine" -AdditionalChildPath "app"
@@ -58,17 +64,25 @@ $ErrorActionPreference = "Stop"
 $logPath = Join-Path -Path $ROOT_DIR -ChildPath "logs"
 New-Item -ItemType Directory -Path $logpath -Force | Out-Null
 
-$buildLog = Join-Path -Path $logPath -ChildPath "build_$(get-date -format `"yyyyMMddhhmmsstt`").log"
+$errorLog = Join-Path -Path $logPath -ChildPath "error_$(get-date -format `"yyyyMMddhhmmsstt`").log"
+$transcriptLog = Join-Path -Path $logPath -ChildPath "build_$(get-date -format `"yyyyMMddhhmmsstt`").log"
 
-Start-Transcript -Path $buildLog | Out-Null
+Start-Transcript -Path $transcriptLog | Out-Null
 
 try {
   Write-Host
+
+  if ($ManifestOnly) {
+    Write-Host "NOTE: " -ForegroundColor Magenta -NoNewline
+    Write-Host "ManifestOnly" -ForegroundColor Cyan -NoNewline
+    Write-Host " flag is set!" -ForegroundColor Magenta
+  }
+
   Write-Host "INFO: Verifying NodeJS is present and has the correct version" -ForegroundColor Green
 
   # Check for NodeJS and NPM and fetch their current versions
   try {
-    $npmErr = $(    
+    $npmErr = $(
       $npmDetails = npm version --json
     ) 2>&1
   } catch {
@@ -112,7 +126,7 @@ try {
 
   # Check for PIP and fetch the associated Python version
   try {
-    $pipErr = $(    
+    $pipErr = $(
       $pipDetails = pip --version
     ) 2>&1
   } catch {
@@ -125,7 +139,15 @@ try {
 
   # Extract Python version and exit if it doesn't match required version
   if($null -eq $pipErr) {
-    $pythonVersion = [version]$([regex]::matches($pipDetails, '(?!=[(python ])[\d]+\.[\d]+(?=[)])').value)
+    try {
+      $pythonVersion = [version]$([regex]::matches($pipDetails, '(?!=[(python ])[\d]+\.[\d]+(?=[)])').value)
+    } catch {
+      Write-Host "ERROR: Cannot extract Python version!" -ForegroundColor red
+      Write-Host "ERROR: Python " -ForegroundColor red -NoNewline
+      Write-Host "v$PYTHON_VERSION" -ForegroundColor cyan -NoNewline
+      Write-Host " and PIP are required to build the Azure IPAM code package!" -ForegroundColor red
+      exit
+    }
   } else {
     Write-Host "ERROR: Python PIP not detected!" -ForegroundColor red
     Write-Host "ERROR: Python " -ForegroundColor red -NoNewline
@@ -155,18 +177,28 @@ try {
   Write-Host "INFO: Running NPM Install..." -ForegroundColor Green
 
   # Install Azure IPAM UI Dependencies
-  $npmInstallErr = $(
-    $npmInstall = npm ci --no-progress --no-update-notifier --no-fund --loglevel error
-  ) 2>&1
+  try {
+    # Capture all output for logging purposes
+    $npmOutput = if ($ManifestOnly) {
+      npm install --no-progress --no-update-notifier --no-fund --loglevel error 2>&1
+    } else {
+      npm ci --no-progress --no-update-notifier --no-fund --loglevel error 2>&1
+    }
+
+    # Throw error if NPM Install fails
+    if ($LASTEXITCODE -ne 0) {
+      throw "NPM Install failed with exit code $LASTEXITCODE. Output: $($npmOutput -join "`n")"
+    }
+  }
+  catch {
+    # Switch back to original dir before throwing error
+    Pop-Location
+    Write-Host "ERROR: NPM Install failed!" -ForegroundColor red
+    throw $_
+  }
 
   # Switch back to original dir
   Pop-Location
-
-  # Exit if NPM Install fails
-  if($npmInstallErr) {
-    Write-Host "ERROR: NPM Install failed!" -ForegroundColor red
-    throw $npmInstallErr
-  }
 
   # Switch to UI dir for build process
   Push-Location -Path $uiDir
@@ -174,18 +206,24 @@ try {
   Write-Host "INFO: Running NPM Build..." -ForegroundColor Green
 
   # Build Azure IPAM UI
-  $npmBuildErr = $(
-    $npmBuild = npm run build --no-update-notifier
-  ) 2>&1
+  try {
+    # Capture all output for logging purposes
+    $npmBuildOutput = npm run build --no-update-notifier 2>&1
+
+    # Throw error if NPM Build fails
+    if ($LASTEXITCODE -ne 0) {
+      throw "NPM Build failed with exit code $LASTEXITCODE. Output: $($npmBuildOutput -join "`n")"
+    }
+  }
+  catch {
+    # Switch back to original dir before throwing error
+    Pop-Location
+    Write-Host "ERROR: NPM Build failed!" -ForegroundColor red
+    throw $_
+  }
 
   # Switch back to original dir
   Pop-Location
-
-  # Exit if NPM Build fails
-  if($npmBuildErr) {
-    Write-Host "ERROR: NPM Build failed!" -ForegroundColor red
-    throw $npmBuildErr
-  }
 
   # Create temporary directory
   New-Item -ItemType Directory -Path $tempFolder -Force | Out-Null
@@ -202,18 +240,28 @@ try {
   $packageDir = New-Item -ItemType Directory -Path (Join-Path -Path $tempFolder -ChildPath "packages")
 
   # Fetch Azure IPAM Engine modules
-  $pipInstallErr = $(
-    $pipInstall = pip install -r requirements.lock.txt --target $packageDir.FullName --no-warn-script-location --progress-bar off
-  ) 2>&1
+  try {
+    # Capture all output for logging purposes
+    $pipOutput = if ($ManifestOnly) {
+      pip install -r requirements.txt --target $packageDir.FullName --no-warn-script-location --no-user --progress-bar off 2>&1
+    } else {
+      pip install -r requirements.lock.txt --target $packageDir.FullName --no-warn-script-location --no-user --progress-bar off 2>&1
+    }
+
+    # Throw error if PIP Install fails
+    if ($LASTEXITCODE -ne 0) {
+      throw "PIP Install failed with exit code $LASTEXITCODE. Output: $($pipOutput -join "`n")"
+    }
+  }
+  catch {
+    # Switch back to original dir before throwing error
+    Pop-Location
+    Write-Host "ERROR: PIP Install failed!" -ForegroundColor red
+    throw $_
+  }
 
   # Switch back to original dir
   Pop-Location
-
-  # Exit if PIP Install fails
-  if($pipInstallErr) {
-    Write-Host "ERROR: PIP Install failed!" -ForegroundColor red
-    throw $pipInstallErr
-  }
 
   # Create the Azure IPAM ZIP Deploy archive if NPM Build and PIP install were successful
   if((-not $npmBuildErr) -and (-not $pipInstallErr)) {
@@ -251,7 +299,7 @@ try {
   Write-Host "ZIP Asset Path: $fullPath" -ForegroundColor Yellow
 }
 catch {
-  $_ | Out-File -FilePath $buildLog -Append
+  $_ | Out-File -FilePath $errorLog -Append
   Write-Host "ERROR: Unable to build Azure IPAM Zip assets due to an exception, see log for detailed information!" -ForegroundColor red
   Write-Host "Build Log: $buildLog" -ForegroundColor Red
 
